@@ -1,26 +1,37 @@
 <?php
-// Этот файл принимает POST-запросы с ключем и хвидом, затем сохраняет их в файл keys.txt
+// Этот файл принимает POST-запросы с ключем, проверяет, не привязан ли данный ключ к хвиду,
+// и если не привязан, привязывает к хвиду и возвращает его
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $key = $_POST['key'];
-    $hwid = $_POST['hwid'];
 
-    // Проверяем, что ключ и хвид не пусты
-    if (!empty($key) && !empty($hwid)) {
-        // Открываем файл для записи
-        $file = fopen('keys.txt', 'a');
+    // Проверяем, что ключ не пуст
+    if (!empty($key)) {
+        // Открываем файл с ключами и хвидами
+        $keysFile = file_get_contents('keys.txt');
+        $keys = explode("\n", $keysFile);
 
-        // Записываем ключ и хвид в файл
-        fwrite($file, $key . '=' . $hwid . "\n");
+        // Проверяем, не привязан ли данный ключ к хвиду
+        foreach ($keys as $line) {
+            list($savedKey, $hwid) = explode('=', $line);
+            if ($key === $savedKey) {
+                // Если ключ уже привязан, возвращаем ошибку
+                echo json_encode(['error' => 'Key already bound to HWID']);
+                exit;
+            }
+        }
 
-        // Закрываем файл
-        fclose($file);
+        // Если ключ не привязан, генерируем новый хвид
+        $newHwid = bin2hex(random_bytes(16));
 
-        // Возвращаем успешный ответ
-        echo json_encode(['success' => true]);
+        // Добавляем новую пару ключ-хвид в файл
+        file_put_contents('keys.txt', "\n{$key}={$newHwid}", FILE_APPEND);
+
+        // Возвращаем новый хвид
+        echo json_encode(['success' => true, 'hwid' => $newHwid]);
     } else {
-        // Возвращаем ошибку, если ключ или хвид пусты
-        echo json_encode(['error' => 'Key and HWID cannot be empty']);
+        // Возвращаем ошибку, если ключ пуст
+        echo json_encode(['error' => 'Key cannot be empty']);
     }
 } else {
     // Возвращаем ошибку для неподдерживаемых запросов
