@@ -27,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Добавляем новую пару ключ-хвид в файл
         file_put_contents('keys.txt', "\n{$key}={$newHwid}", FILE_APPEND);
 
+        // Добавляем хвид в файл с привязанными хвидами
+        file_put_contents('hwids.txt', "{$newHwid}\n", FILE_APPEND);
+
         // Возвращаем новый хвид
         echo json_encode(['success' => true, 'hwid' => $newHwid]);
     } else {
