@@ -1,20 +1,26 @@
 <?php
-$key = $_POST['key'];
-$hwid = $_POST['hwid'];
+$key = $_POST["key"];
+$hwid = $_POST["hwid"];
 
-if ($key && $hwid) {
-    $filename = "keys.txt";
+// Здесь может быть ваша логика проверки ключа и хвид, например, запись в файл keys.txt
 
-    // Читаем текущий файл keys.txt
-    $currentData = file_get_contents($filename);
+// Пример: проверка, что файл keys.txt существует
+if (file_exists("keys.txt")) {
+    // Пример: чтение из файла keys.txt
+    $keysData = file_get_contents("keys.txt");
 
-    // Проверяем, есть ли уже такой ключ в файле
-    if (strpos($currentData, $key) === false) {
-        // Добавляем новую строку с ключем и хвидом
-        file_put_contents($filename, $key . "=" . $hwid . PHP_EOL, FILE_APPEND | LOCK_EX);
-        echo "success";
-    } else {
+    // Пример: разделение строки на массив ключей
+    $keysArray = explode("\n", $keysData);
+
+    // Пример: проверка, что ключ уже занят
+    if (in_array($key, $keysArray)) {
         echo "duplicate";
+    } else {
+        // Пример: добавление нового ключа в файл keys.txt
+        file_put_contents("keys.txt", $key . "\n", FILE_APPEND);
+        // Пример: запись соответствия ключа и хвид в файл keys_hwids.txt
+        file_put_contents("keys_hwids.txt", $key . "=" . $hwid . "\n", FILE_APPEND);
+        echo "success";
     }
 } else {
     echo "error";
